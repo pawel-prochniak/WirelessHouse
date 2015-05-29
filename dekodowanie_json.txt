@@ -1,0 +1,63 @@
+    public List<Appliance> decodeRoom(String jsonString, String room){
+        List<Appliance> applianceList = new ArrayList<>();
+        try{
+            JSONObject json = new JSONObject(jsonString);
+            JSONArray typeArray = json.getJSONArray(room);
+            for (int i = 0; i<typeArray.length(); i++){
+                JSONObject t = typeArray.getJSONObject(i);
+                String type = t.getString(TYPE);
+                JSONObject param = t.getJSONObject(PARAM);
+                switch (type){
+                    case "door":
+                        Door door = new Door();
+                        door.setName(param.getString(NAME));
+                        door.setState(param.getString(IS_OPEN));
+                        applianceList.add(door);
+                        break;
+                    case "lightBlind":
+                        LightBlind blindLight = new LightBlind(
+                                param.getBoolean(STATE),
+                                param.getString(NAME),
+                                param.getInt(BLIND)
+                        );
+                        applianceList.add(blindLight);
+                        break;
+                    case "light":
+                        Light light = new Light(
+                                param.getBoolean(STATE),
+                                param.getString(NAME)
+                        );
+                        applianceList.add(light);
+                        break;
+                    case "windowBlind":
+                        WindowBlind windowBlind = new WindowBlind(
+                                param.getInt(STATE),
+                                param.getString(NAME),
+                                param.getInt(BLIND)
+                        );
+                        applianceList.add(windowBlind);
+                        break;
+                    case "window":
+                        Window window = new Window(
+                                param.getInt(STATE),
+                                param.getString(NAME)
+                        );
+                        applianceList.add(window);
+                        break;
+                    case "heating":
+                        Heating heating = new Heating(
+                                param.getInt(TEMPERATURE),
+                                param.getInt(NEW_TEMPERATURE)
+                        );
+                        applianceList.add(heating);
+                        break;
+                    case "temperature":
+                        Temperature temperature = new Temperature( param.getInt(TEMPERATURE));
+                        applianceList.add(temperature);
+                        break;
+            }
+            }
+
+        }catch (JSONException e){}
+        return applianceList;
+    }
