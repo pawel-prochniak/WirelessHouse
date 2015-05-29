@@ -1,0 +1,92 @@
+{
+    "kitchen":[
+		{
+        	"type":"door",
+                "param":{
+			"name":"Kitchen door",
+			"isOpen":"Open"
+			}
+		},
+		{
+		"type":"heating",
+                "param":{			
+			"name":"Temperature",
+			"temperature":"21",
+			"newTemperature":"20"
+			}
+		},
+		{
+		"type":"window",
+		"param":{
+			"name":"South Window",
+			"state":"1"
+			}
+		},
+		{
+		"type":"windowBlind",
+		"param":{
+			"name":"West Window",
+			"state":"1",
+			"blind":"40"
+			}
+		},
+		{
+		"type":"lightBlind",
+		"param":{
+			"name":"Dimmer",
+			"state":"true",
+			"blind":"80"
+			}
+		}
+	],
+	"livingRoom":[
+		{
+        	"type":"door",
+                "param":{
+			"name":"LivRoom door",
+			"isOpen":"Closed"
+			}
+		},
+		{
+		"type":"heating",
+                "param":{			
+			"name":"Temperature",
+			"temperature":"21",
+			"newTemperature":"20"
+			}
+		},
+		{
+		"type":"windowBlind",
+		"param":{
+			"name":"1st Window",
+			"state":"0",
+			"blind": "80"
+			}
+		},
+		{
+		"type":"windowBlind",
+		"param":{
+			"name":"2nd Window",
+			"state":"1",
+			"blind":"40"
+			}
+		},
+		{
+		"type":"lightBlind",
+		"param":{
+			"name":"Dimmer",
+			"state":"true",
+			"blind":"80"
+			}
+		},
+		{
+		"type":"lightBlind",
+		"param":{
+			"name":"Dimmer2",
+			"state":"false",
+			"blind":"20"
+			}
+		}
+
+	]
+}

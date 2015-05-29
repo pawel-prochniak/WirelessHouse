@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">WirelessHouse</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="edit_message">Enter a message</string>
+    <string name="window_bar_title">Rollers unrolled:</string>
+    <string name="temperature_bar_title">Set to: </string>
+    <string name="light_bar_title">Brightness : </string>
+    <string-array name="window_spinner_choices">
+        <item>Closed</item>
+        <item>Ajar</item>
+        <item>Open</item>
+    </string-array>
+
+</resources>
