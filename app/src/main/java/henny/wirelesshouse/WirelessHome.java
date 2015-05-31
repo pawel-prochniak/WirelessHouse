@@ -6,19 +6,13 @@ import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Environment;
+import android.os.Handler;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -43,15 +37,20 @@ public class WirelessHome extends Activity {
     public String url = new String ("http://192.168.1.6:8080/dajpokoj");
     public JSONDecoder jsonDec;
     Resources resources;
-    private String json;
-
+    private int lastExpandedPosition = -1;
+    Handler h = new Handler();
+    final int dlDelay = 5000; //milliseconds
+    FileHandler fileHandler = new FileHandler(this);
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        resources = getResources();
         super.onCreate(savedInstanceState);
         dlText = null;
         setContentView(R.layout.activity_wireless_home);
+
+        fileHandler.writer();
 
 
         //TextView determining connection
@@ -64,20 +63,14 @@ public class WirelessHome extends Activity {
 
             @Override
             protected void onPostExecute(String result) {
-                dlText = checkConnection();
-                setTextView(txtStart, dlText);
-            }
-        }.execute(url);
+                if (checkConnection()) {
+                    dlText = "Connected";
+                    // TODO Startup Downloader
+                } else {
+                    dlText = "No network connection. Using latest known data.";
+                }
+                setTextView(txtStart, dlText);;
 
-        new Downloader(){
-            @Override
-            protected String doInBackground(String... s){
-                sendJSON("http://192.168.208.50:8080/bierz", fileReader());
-                return s[0];
-            }
-
-            @Override
-            protected void onPostExecute(String result) {
             }
         }.execute(url);
 
@@ -86,7 +79,7 @@ public class WirelessHome extends Activity {
         expListView = (ExpandableListView) findViewById(R.id.lvExp);
 
         //declare rooms
-        declareRooms();
+        declareRooms(fileHandler.reader());
 
         // prepare room list
         prepareRoomList();
@@ -100,6 +93,26 @@ public class WirelessHome extends Activity {
         expListView.setAdapter(listAdapter);
 
 
+        expListView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
+            @Override
+            public void onGroupExpand(int groupPosition) {
+                if (lastExpandedPosition != -1
+                        && groupPosition != lastExpandedPosition) {
+                    expListView.collapseGroup(lastExpandedPosition);
+                }
+                lastExpandedPosition = groupPosition;
+            }
+        });
+
+
+        // Thread downloading JSON from Spring Serv every 5 sec
+        h.postDelayed(new Runnable() {
+            public void run() {
+                // TODO Downloader and Main View Refresher
+                h.postDelayed(this, dlDelay);
+            }
+        }, dlDelay);
+
     }
 
 
@@ -107,7 +120,7 @@ public class WirelessHome extends Activity {
     Prepare rooms
      */
 
-    private void declareRooms()
+    private void declareRooms(String json)
     {
         main = new House("Main Control");
         kitchen = new Room("Kitchen");
@@ -117,38 +130,24 @@ public class WirelessHome extends Activity {
 
         jsonDec = new JSONDecoder();
 
-        new Downloader(){
-            @Override
-            protected String doInBackground(String...strings){
-                return fileReader();
-            }
-            @Override
-            protected void onPostExecute(String result) {
-                String json;
-                json = result;
+        //Main control
+        main.setAppliances(jsonDec.decodeRoom(json, "main"));
 
-                //Main control
-                main.setAppliances(jsonDec.decodeRoom(json, "main"));
+        //Kitchen
+        kitchen.setAppliances(jsonDec.decodeRoom(json, "kitchen"));
 
-                //Kitchen
-                kitchen.setAppliances(jsonDec.decodeRoom(fileReader(), "kitchen"));
+        //Living Room
+        livingRoom.setAppliances(jsonDec.decodeRoom(json, "livingRoom"));
 
-                //Living Room
-                livingRoom.setAppliances(jsonDec.decodeRoom(json, "livingRoom"));
+        //Bedroom
+        bedroom.setAppliances(jsonDec.decodeRoom(json, "bedroom"));
 
-                //Bedroom
-                bedroom.setAppliances(jsonDec.decodeRoom(json, "bedroom"));
+        //Bathroom
+        bathroom.setAppliances(jsonDec.decodeRoom(json, "bathroom"));
 
-                //Bathroom
-                bathroom.setAppliances(jsonDec.decodeRoom(json, "bathroom"));
-            }
-        }.execute("http://192.168.208.50:8080/get_house");
-
-        kitchen.setAppliances(jsonDec.decodeRoom(fileReader(), "main"));
+        //kitchen.setAppliances(jsonDec.decodeRoom(fileReader(), "main"));
 
     }
-
-
 
     /*
      * Preparing rooms' list
@@ -179,18 +178,14 @@ public class WirelessHome extends Activity {
         Toast.makeText(this, s, Toast.LENGTH_LONG).show();
     }
 
-    private void setTxt(String in,String out){
-        out = in;
-    }
-
-    private String checkConnection() {
+    private boolean checkConnection() {
             ConnectivityManager connMgr = (ConnectivityManager)
                     getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
             if (networkInfo != null && networkInfo.isConnected()) {
-                return "Connected.";
+                return true;
             } else {
-                return "No network connection. Using latest known data.";
+                return false;
             }
     }
 
@@ -205,8 +200,8 @@ public class WirelessHome extends Activity {
         is = resources.openRawResource(rID);
         try {
             byte[] buffer = new byte[is.available()];
-            is.read(buffer);
             ByteArrayOutputStream os = new ByteArrayOutputStream();
+            is.read(buffer);
             os.write(buffer);
             os.close();
             is.close();
@@ -217,19 +212,7 @@ public class WirelessHome extends Activity {
         }
     }
 
-    //KOPSA SIE
-    private void FileSaver() {
-        try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(openFileOutput("config.txt", Context.MODE_PRIVATE));
-            outputStreamWriter.write(Downloader.downloadJSON("http://192.168.1.1"));
-            outputStreamWriter.close();
-        }
-        catch (IOException e) {
-            customToast("File write failed: " + e.toString());
-        }
-    }
-
-
 
 
 }
+

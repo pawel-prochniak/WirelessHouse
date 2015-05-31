@@ -46,10 +46,15 @@ public class Downloader extends AsyncTask<String, Void, String> {
 
     }
 
-    public static String downloadJSON(String url){
+    public String downloadJSON(String url){
         RestTemplate restTemplate = new RestTemplate();
-        //restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
-        return restTemplate.getForObject(url, String.class);
+        String result;
+        try {
+            result = restTemplate.getForObject(url, String.class);
+        }catch (RestClientException e) {
+            result = "Error";
+        }
+        return result;
     }
 
     public void sendJSON(String url, String obj){

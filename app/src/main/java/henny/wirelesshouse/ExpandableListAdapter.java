@@ -19,9 +19,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.DataInputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -38,11 +35,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     private Context _context;
     private List<String> _listDataHeader; // header titles
-    // child data in format of header title, child title
     private HashMap<String, List<Appliance>> _listDataChild;
-    URL url;
-    URLConnection urlCon;
-    DataInputStream inputStream;
 
     public ExpandableListAdapter(Context context, List<String> listDataHeader,
                                  HashMap<String, List<Appliance>> listChildData) {
@@ -50,8 +43,6 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         this._listDataHeader = listDataHeader;
         this._listDataChild = listChildData;
     }
-
-    JSONDecoder jsonDec;
 
 
     @Override
