@@ -25,6 +25,10 @@ public class Window implements Appliance {
         else return "No read";
     }
 
+    public int getOpen(){
+        return state;
+    }
+
     @Override
     public String getName(){return name;}
 

@@ -23,6 +23,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -38,9 +41,6 @@ import org.springframework.web.client.RestTemplate;
 
 public class Downloader extends AsyncTask<String, Void, String> {
 
-    static String response = null;
-    public final static int GET = 1;
-    public final static int POST = 2;
 
     public Downloader() {
 
@@ -52,21 +52,28 @@ public class Downloader extends AsyncTask<String, Void, String> {
         try {
             result = restTemplate.getForObject(url, String.class);
         }catch (RestClientException e) {
-            result = "Error";
+            result = "Rest Error";
         }
         return result;
     }
 
     public void sendJSON(String url, String obj){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        org.springframework.http.HttpEntity<String> entity = new org.springframework.http.HttpEntity<String>(obj,headers);
         RestTemplate restTemplate = new RestTemplate();
+        /*
         HttpMessageConverter formHttpMessageConverter = new FormHttpMessageConverter();
         HttpMessageConverter stringHttpMessageConverternew = new StringHttpMessageConverter();
         List<HttpMessageConverter<?>> convList = new ArrayList<HttpMessageConverter<?>>();
         convList.add(formHttpMessageConverter);
-        convList.add(stringHttpMessageConverternew);
+        //convList.add(stringHttpMessageConverternew);
+        //HttpMessageConverter jsonHttpMessageConverter = new MappingJackson2HttpMessageConverter();
+        //convList.add(jsonHttpMessageConverter);
         restTemplate.setMessageConverters(convList);
-        //restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
-        restTemplate.postForObject(url, obj, String.class);
+        restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
+        */
+        restTemplate.put(url, entity);
     }
 
     /**
@@ -76,7 +83,7 @@ public class Downloader extends AsyncTask<String, Void, String> {
     public String getCall(String urlString) {
         String text = null;
         InputStream is = null;
-        int len = 15;
+        int len = 100000;
 
         try {
             URL url = new URL(urlString);

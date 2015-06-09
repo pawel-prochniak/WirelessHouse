@@ -24,6 +24,10 @@ public class Light implements Appliance {
         else return "Off";
     }
 
+    public boolean getSt(){
+        return state;
+    }
+
     @Override
     public String getName() {return name;}
 

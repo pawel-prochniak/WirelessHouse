@@ -14,7 +14,7 @@ public class Heating extends Temperature {
 
     @Override
     public String getState() {
-        return temperature.toString()+ " \u2103";
+        return temperature.toString();
     }
 
     @Override
@@ -22,7 +22,7 @@ public class Heating extends Temperature {
 
     public int getTemperature(){return temperature;}
 
-    public String getNewTemperature(){return newTemperature.toString()+"\u2103";}
+    public String getNewTemperature(){return newTemperature.toString();}
 
     public void setNewTemperature(int newTemperature){this.newTemperature=newTemperature;}
 

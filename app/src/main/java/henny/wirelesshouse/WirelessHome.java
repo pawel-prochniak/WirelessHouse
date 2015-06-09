@@ -3,13 +3,21 @@ package henny.wirelesshouse;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
+import android.database.DataSetObservable;
+import android.database.DataSetObserver;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,21 +34,24 @@ public class WirelessHome extends Activity {
     ExpandableListAdapter listAdapter;
     ExpandableListView expListView;
     List<String> listDataHeader;
-    List<Room> roomList;
+    volatile List<Room> roomList;
     HashMap<String, List<Appliance>> listDataChild;
     private volatile String dlText;
-    public House main;
-    public Room kitchen;
-    public Room livingRoom;
-    public Room bedroom;
-    public Room bathroom;
-    public String url = new String ("http://192.168.1.6:8080/dajpokoj");
+    public volatile House main;
+    public volatile Room kitchen;
+    public volatile Room livingRoom;
+    public volatile Room bedroom;
+    public volatile Room bathroom;
+    public String url = new String ("http://192.168.1.5:8080/bierz");
+    public volatile String json;
+    public volatile String lastJson;
     public JSONDecoder jsonDec;
     Resources resources;
-    private int lastExpandedPosition = -1;
+    private volatile int lastExpandedPosition = -1;
     Handler h = new Handler();
-    final int dlDelay = 5000; //milliseconds
-    FileHandler fileHandler = new FileHandler(this);
+    final int dlDelay = 6000; //milliseconds
+    volatile FileHandler fileHandler = new FileHandler(this);
+    JSONObject jsonObj;
 
 
     @Override
@@ -50,7 +61,7 @@ public class WirelessHome extends Activity {
         dlText = null;
         setContentView(R.layout.activity_wireless_home);
 
-        fileHandler.writer();
+        //fileHandler.writer();
 
 
         //TextView determining connection
@@ -79,7 +90,7 @@ public class WirelessHome extends Activity {
         expListView = (ExpandableListView) findViewById(R.id.lvExp);
 
         //declare rooms
-        declareRooms(fileHandler.reader());
+        declareRooms(fileHandler.firstReader());
 
         // prepare room list
         prepareRoomList();
@@ -88,6 +99,13 @@ public class WirelessHome extends Activity {
         prepareListData();
 
         listAdapter = new ExpandableListAdapter(this, listDataHeader, listDataChild);
+
+        listAdapter.registerDataSetObserver(new DataSetObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+            }
+        });
 
         // setting list adapter
         expListView.setAdapter(listAdapter);
@@ -105,10 +123,86 @@ public class WirelessHome extends Activity {
         });
 
 
+
         // Thread downloading JSON from Spring Serv every 5 sec
         h.postDelayed(new Runnable() {
             public void run() {
-                // TODO Downloader and Main View Refresher
+                // TODO Downloader and Main View Refresher's Focus
+
+                // ADD condition to refresh only when new data appear in DB
+
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        /*
+                        prepareRoomList();
+                        json = jsonDec.encodeRooms(roomList);
+                        try {
+                            jsonObj = new JSONObject(json);
+                        }catch (JSONException e){customToast("JSONExc");}
+                        fileHandler.writerOnJSON(json);
+                        */
+
+                        /***
+                         * ZROBIC TAK, ZEBY POBIERALO JSON I PODMIENIALO NA NOWE
+                         */
+
+                        new Downloader() {
+                            @Override
+                            protected String doInBackground(String... s) {
+                                return downloadJSON("http://192.168.1.5:8080/get_house");
+                            }
+
+
+                            @Override
+                            protected void onPostExecute(String result) {
+                                json = result;
+                                if (lastJson!=json) {
+                                    declareRooms(json);
+                                    prepareRoomList();
+                                    prepareListData();
+                                    //customToast(jsonDec.encodeRooms(roomList));
+                                    listAdapter = new ExpandableListAdapter(getBaseContext(), listDataHeader, listDataChild);
+                                    expListView.setAdapter(listAdapter);
+                                    if (lastExpandedPosition != -1) {
+                                        expListView.expandGroup(lastExpandedPosition);
+                                        expListView.setSelectedGroup(lastExpandedPosition);
+                                    }
+                                    lastJson = json;
+                                }
+                                else{
+                                    json = jsonDec.encodeRooms(roomList);
+                                    new Downloader() {
+                                        @Override
+                                        protected String doInBackground(String... s) {
+                                            sendJSON("http://192.168.1.5:8080/bierz", json);
+                                            return "";
+                                        }
+
+                                        @Override
+                                        protected void onPostExecute(String result) {
+                                        }
+                                    }.execute(url);
+                                }
+                            }
+                        }.execute(url);
+
+
+
+
+                        //fileHandler.writerOnJSON(jsonDec.encodeRooms(roomList));
+                        //customToast(fileHandler.reader());
+
+                        //declareRooms(jsonDec.encodeRooms(roomList))
+
+
+
+
+
+
+                    }
+                });
+
+
                 h.postDelayed(this, dlDelay);
             }
         }, dlDelay);
@@ -144,8 +238,6 @@ public class WirelessHome extends Activity {
 
         //Bathroom
         bathroom.setAppliances(jsonDec.decodeRoom(json, "bathroom"));
-
-        //kitchen.setAppliances(jsonDec.decodeRoom(fileReader(), "main"));
 
     }
 
@@ -191,6 +283,10 @@ public class WirelessHome extends Activity {
 
     private void setTextView(TextView v, String s){
         v.setText(s);
+    }
+
+    public String getJSON(){
+        return jsonDec.encodeRooms(roomList);
     }
 
     private String fileReader(){

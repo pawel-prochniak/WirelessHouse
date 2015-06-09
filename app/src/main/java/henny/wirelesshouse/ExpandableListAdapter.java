@@ -6,6 +6,7 @@ package henny.wirelesshouse;
  */
 
 import android.content.Context;
+import android.database.DataSetObserver;
 import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,6 +44,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         this._listDataHeader = listDataHeader;
         this._listDataChild = listChildData;
     }
+    private FileHandler fileHandler = new FileHandler(_context);
 
 
     @Override
@@ -200,6 +202,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                 public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                     window.setState(position);
 
+
                 }
 
                 @Override
@@ -290,11 +293,11 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
             //Setting temperature
             TextView txtTemperature = (TextView) convertView
                     .findViewById(R.id.temperature);
-            txtTemperature.setText(heating.getState());
+            txtTemperature.setText(heating.getState()+ " \u2103");
             //Setting set temperature
             final TextView txtNewTemperature = (TextView) convertView
                     .findViewById(R.id.temperature_set);
-            txtNewTemperature.setText(heating.getNewTemperature());
+            txtNewTemperature.setText(heating.getNewTemperature()+ " \u2103");
             //Setting bar status
             SeekBar seekBar = (SeekBar) convertView
                     .findViewById(R.id.temperature_bar);
@@ -337,7 +340,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
             //Setting temperature outside
             TextView txtDoorOpen = (TextView) convertView
                     .findViewById(R.id.temperature);
-            txtDoorOpen.setText(temperature.getState());
+            txtDoorOpen.setText(temperature.getState()+ " \u2103");
             return convertView;
         }
 
@@ -406,5 +409,9 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         return true;
     }
 
+    @Override
+    public void registerDataSetObserver(DataSetObserver observer) {
+        super.registerDataSetObserver(observer);
+    }
 
 }

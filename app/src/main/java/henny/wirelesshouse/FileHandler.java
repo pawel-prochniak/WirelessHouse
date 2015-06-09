@@ -25,7 +25,25 @@ public class FileHandler {
 
     public String reader(){
         try {
-            FileInputStream is = context.openFileInput("json1.txt");
+            FileInputStream is = context.openFileInput("json.txt");
+            byte[] buffer = new byte[is.available()];
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            is.read(buffer);
+            os.write(buffer);
+            os.close();
+            is.close();
+            return os.toString();
+
+        }catch (IOException e) {
+            return "";
+        }
+    }
+
+    public String firstReader(){
+        try {
+            Resources resources = context.getResources();
+            int jsonID = resources.getIdentifier("henny.wirelesshouse:raw/json", null, null);
+            InputStream is = resources.openRawResource(jsonID);
             byte[] buffer = new byte[is.available()];
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             is.read(buffer);
@@ -65,6 +83,22 @@ public class FileHandler {
                 ret = stringBuilder.toString();
             }
             outputStream.write(ret.getBytes());
+            outputStream.close();
+
+        } catch (IOException e) {
+
+
+        }
+    }
+
+    public void writerOnJSON(String json) {
+
+        try {
+
+            File file = new File(context.getFilesDir(), "json.txt");
+            OutputStream outputStream = context.openFileOutput("json.txt", Context.MODE_PRIVATE);
+
+            outputStream.write(json.getBytes());
             outputStream.close();
 
         } catch (IOException e) {

@@ -104,87 +104,98 @@ public class JSONDecoder {
         return applianceList;
     }
 
-    public String encodeRoom(List<Room> roomList) {
-        String result;
-
-        org.json.simple.JSONObject roomObj = new org.json.simple.JSONObject();
-
-        for (Room room : roomList) {
-            JSONArray array = new JSONArray();
-
-            List<Appliance> list = room.getAppliances();
-
-            for (Appliance app : list) {
-                org.json.simple.JSONObject typeObj = new org.json.simple.JSONObject();
-                org.json.simple.JSONObject paramObj = new org.json.simple.JSONObject();
-
-                if (app instanceof Door) {
-                    Door door = (Door) app;
-                    typeObj.put(TYPE, "door");
-                    paramObj.put(NAME, door.getName());
-                    paramObj.put(IS_OPEN, door.getState());
-                }
-                if (app instanceof Temperature) {
-                    if (app instanceof Heating) {
-                        Heating heating = (Heating) app;
-                        typeObj.put(TYPE, "heating");
-                        paramObj.put(NAME, heating.getName());
-                        paramObj.put(TEMPERATURE, heating.getTemperature());
-                        paramObj.put(NEW_TEMPERATURE, heating.getNewTemperature());
-                    } else {
-                        Temperature temp = (Temperature) app;
-                        typeObj.put(TYPE, "temperature");
-                        paramObj.put(NAME, temp.getName());
-                        paramObj.put(TEMPERATURE, temp.getState());
-                    }
-                }
-                if (app instanceof Window) {
-                    if (app instanceof WindowBlind) {
-                        WindowBlind window = (WindowBlind) app;
-                        typeObj.put(TYPE, "windowBlind");
-                        paramObj.put(NAME, window.getName());
-                        paramObj.put(STATE, window.getState());
-                        paramObj.put(BLIND, window.getBlind());
-                    } else {
-                        Window window = (Window) app;
-                        typeObj.put(TYPE, "window");
-                        paramObj.put(NAME, window.getName());
-                        paramObj.put(STATE, window.getState());
-                    }
-                }
-                if (app instanceof Light) {
-                    if (app instanceof LightBlind) {
-                        LightBlind light = (LightBlind) app;
-                        typeObj.put(TYPE, "lightBlind");
-                        paramObj.put(NAME, light.getName());
-                        paramObj.put(STATE, light.getState());
-                        paramObj.put(BLIND, light.getBlind());
-                    } else {
-                        Light light = (Light) app;
-                        typeObj.put(TYPE, "light");
-                        paramObj.put(NAME, light.getName());
-                        paramObj.put(STATE, light.getState());
-                    }
-                }
-                typeObj.put("param", paramObj);
-                array.put(typeObj);
-        }
-            switch (room.getName()){
-                case "Bedroom": roomObj.put("bedroom", array); break;
-                case "Main Control": roomObj.put("main", array); break;
-                case "Kitchen": roomObj.put("kitchen", array); break;
-                case "Living Room": roomObj.put("livingRoom", array); break;
-                case "Bathroom": roomObj.put("bathroom", array); break;
-            }
-
-        }
-        StringWriter out = new StringWriter();
+    public String encodeRooms(List<Room> roomList) {
+        String result = "";
         try {
-            org.json.simple.JSONObject.writeJSONString(roomObj, out);
-        } catch (IOException e) {
-        }
 
-        result = out.toString();
+            JSONObject roomObj = new JSONObject();
+
+            for (Room room : roomList) {
+                JSONArray array = new JSONArray();
+
+                List<Appliance> list = room.getAppliances();
+
+                for (Appliance app : list) {
+                    JSONObject typeObj = new JSONObject();
+                    JSONObject paramObj = new JSONObject();
+
+
+                    if (app instanceof Door) {
+                        Door door = (Door) app;
+                        typeObj.put(TYPE, "door");
+                        paramObj.put(NAME, door.getName());
+                        paramObj.put(IS_OPEN, door.getState());
+                    }
+                    if (app instanceof Temperature) {
+                        if (app instanceof Heating) {
+                            Heating heating = (Heating) app;
+                            typeObj.put(TYPE, "heating");
+                            paramObj.put(NAME, heating.getName());
+                            paramObj.put(TEMPERATURE, heating.getTemperature());
+                            paramObj.put(NEW_TEMPERATURE, heating.getNewTemperature());
+                        } else {
+                            Temperature temp = (Temperature) app;
+                            typeObj.put(TYPE, "temperature");
+                            paramObj.put(NAME, temp.getName());
+                            paramObj.put(TEMPERATURE, temp.getState());
+                        }
+                    }
+                    if (app instanceof Window) {
+                        if (app instanceof WindowBlind) {
+                            WindowBlind window = (WindowBlind) app;
+                            typeObj.put(TYPE, "windowBlind");
+                            paramObj.put(NAME, window.getName());
+                            paramObj.put(STATE, window.getOpen());
+                            paramObj.put(BLIND, window.getBlind());
+                        } else {
+                            Window window = (Window) app;
+                            typeObj.put(TYPE, "window");
+                            paramObj.put(NAME, window.getName());
+                            paramObj.put(STATE, window.getOpen());
+                        }
+                    }
+                    if (app instanceof Light) {
+                        if (app instanceof LightBlind) {
+                            LightBlind light = (LightBlind) app;
+                            typeObj.put(TYPE, "lightBlind");
+                            paramObj.put(NAME, light.getName());
+                            paramObj.put(STATE, light.getSt());
+                            paramObj.put(BLIND, light.getBlind());
+                        } else {
+                            Light light = (Light) app;
+                            typeObj.put(TYPE, "light");
+                            paramObj.put(NAME, light.getName());
+                            paramObj.put(STATE, light.getSt());
+                        }
+                    }
+                    typeObj.put("param", paramObj);
+                    array.put(typeObj);
+                }
+                switch (room.getName()) {
+                    case "Bedroom":
+                        roomObj.put("bedroom", array);
+                        break;
+                    case "Main Control":
+                        roomObj.put("main", array);
+                        break;
+                    case "Kitchen":
+                        roomObj.put("kitchen", array);
+                        break;
+                    case "Living Room":
+                        roomObj.put("livingRoom", array);
+                        break;
+                    case "Bathroom":
+                        roomObj.put("bathroom", array);
+                        break;
+                }
+                result = roomObj.toString();
+
+            }
+            }catch (JSONException e){result="";}
+
+
+
+        //result = out.toString();
 
         return result;
     }

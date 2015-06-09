@@ -16,6 +16,6 @@ public class Temperature implements Appliance {
 
     @Override
     public String getState() {
-        return temperature.toString()+ " \u2103";
+        return temperature.toString();
     }
 }
